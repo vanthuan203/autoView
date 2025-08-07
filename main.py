@@ -542,7 +542,7 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         sleep(random.uniform(2, 3))
 
         js = """
-                const video = document.evaluate("//video[@src]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null).snapshotItem(0);
+                const video = document.querySelector('video');
                 if (video) {
                     return {
                         paused: video.paused,
