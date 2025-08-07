@@ -1,0 +1,17 @@
+Contains|.webp|http://localhost/desktop/img.jpg
+Wildcard_Matches|https://www.youtube.com/s/player/*player_ias.vflset*/base.js|http://localhost/desktop/base.js
+Contains|.jpg|http://localhost/desktop/img.jpg
+Contains|.png|http://localhost/desktop/img.jpg
+Contains|gstatic.com/images?q=|http://localhost/desktop/img.jpg
+Contains|gstatic.com/faviconV2?url=|http://localhost/desktop/img.jpg
+Contains|data:image/|http://localhost/desktop/img.jpg
+Contains|no-nd-rj|http://localhost/desktop/img.jpg
+Contains|googleusercontent.com/proxy|http://localhost/desktop/img.jpgContains|.webp|http://localhost/desktop/img.jpg
+Wildcard_Matches|https://www.youtube.com/s/player/*player_ias.vflset*/base.js|http://localhost/desktop/base.js
+Contains|.jpg|http://localhost/desktop/img.jpg
+Contains|.png|http://localhost/desktop/img.jpg
+Contains|gstatic.com/images?q=|http://localhost/desktop/img.jpg
+Contains|gstatic.com/faviconV2?url=|http://localhost/desktop/img.jpg
+Contains|data:image/|http://localhost/desktop/img.jpg
+Contains|no-nd-rj|http://localhost/desktop/img.jpg
+Contains|googleusercontent.com/proxy|http://localhost/desktop/img.jpg

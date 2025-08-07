@@ -1,0 +1,322 @@
+[
+  {
+    "id": 3000,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": ".webp",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3002,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": ".jpg",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3003,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": ".png",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3004,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "gstatic.com/images?q=",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3005,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "gstatic.com/faviconV2?url=",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3006,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "data:image/",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3007,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "no-nd-rj",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3009,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": ".jpg",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3010,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": ".png",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3011,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "gstatic.com/images?q=",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3012,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "gstatic.com/faviconV2?url=",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3013,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "data:image/",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3014,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "no-nd-rj",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3015,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "googleusercontent.com/proxy",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3016,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "png;base64",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  },
+  {
+    "id": 3017,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": {
+        "url": "https://data.ssvd.online/desktop/img.jpg"
+      }
+    },
+    "condition": {
+      "urlFilter": "ggpht.com",
+      "resourceTypes": [
+        "script",
+        "image",
+        "xmlhttprequest",
+        "main_frame",
+        "sub_frame"
+      ]
+    }
+  }
+]
