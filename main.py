@@ -437,10 +437,13 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
                 driver.get(search_url)
                 log("Tìm kiếm video để đề xuất", i)
                 sleep(random.uniform(5, 7))
-                video_id_ran = find_random_videoid(driver)
+                while True:
+                    video_id_ran = find_random_videoid(driver)
+                    if video_id_ran!=video_id:
+                        break
                 if video_id_ran:
                     success = view(driver, email, port, uuid, i, video_id_ran, random.uniform(
-                        10, 15), "None", keyword, suggest_type)
+                        10, 25), "None", keyword, suggest_type)
                     if not success:
                         stop_profile(uuid, queue, queue_open,
                                      queue_task, email, i)
@@ -634,7 +637,7 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         if source != "None":
             view_count += 1
             log("Hoàn thành View!", i)
-            if random.choice([True, False]):
+            if 1==1: #random.choice([True, False])
                 driver.get("https://m.youtube.com")
                 sleep(random.uniform(5, 7))
                 log("Trang home thành công.", i)
