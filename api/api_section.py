@@ -72,14 +72,15 @@ def start_profile(uuid):
     try:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ext_path = os.path.join(current_dir, 'ext')
-        domain_google=r"*googlevideo.com*"
+        domain_google=r"*data.ssvd.online*"
         domain_ip=r"*ipfighter.com*"
         #--proxy-bypass-list=*googlevideo.com*;*ipfighter.com*
         #--disable-extensions
+        #--load-extension=C:\autoView\ext
         #f"--load-extension={ext_path} --proxy-bypass-list=*data.ssvd.online*"
         x = {
             "uuid": uuid,
-            "chromium_args": f"--disable-extensions"
+            "chromium_args": r" --disable-gpu --disable-extensions"
         }
         header = {
             "accept": "application/json",

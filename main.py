@@ -14,7 +14,7 @@ import sys
 import ctypes
 from selenium import webdriver
 from undetected_chromedriver import ChromeOptions
-
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 __version__ = "1.0.0"
 
@@ -36,7 +36,7 @@ with open("NameVps.txt", "r", encoding="utf-8") as f:
 def update_console():
     try:
         try:
-            global view_count, false_count, check_running, gui_count,__version__
+            global view_count, false_count, check_running, gui_count, __version__
             resize_console()
             move_and_pin_console_bottom_right()
         except:
@@ -76,7 +76,6 @@ def update_console():
         pass
 
 
-
 def Thread_options(thread_id, accounts_chunk):
     for acc in accounts_chunk:
         login_account(acc, thread_id)
@@ -98,7 +97,7 @@ def infinite_worker(thread_id):
             task = get_task(vps_name)
             queue_task.remove(thread_id)
             if task == NULL:
-                log("API Error...",-1)
+                log("API Error...", -1)
                 sleep(5)
                 continue
             if (task["status"] == "true"):
@@ -246,7 +245,7 @@ def login_account(account, i):
                 pass
 
 
-def task_account(account, i, geo, proxy_geo,video_id,video_duration,source,video_title,suggest_type):
+def task_account(account, i, geo, proxy_geo, video_id, video_duration, source, video_title, suggest_type):
     global view_count, false_count, check_running, gui_count
     try:
         index = 0
@@ -307,10 +306,7 @@ def task_account(account, i, geo, proxy_geo,video_id,video_duration,source,video
                 return 0
         log("Start profile với port: "+str(port), i)
         try:
-            # sleep(10)
             options = ChromeOptions()
-            #options.add_argument("--start-maximized")
-            # options.add_argument("--autoplay-policy=no-user-gesture-required")
             options.add_experimental_option(
                 "debuggerAddress", f"127.0.0.1:{port}")
             while queue_open[0] != i:
@@ -322,9 +318,6 @@ def task_account(account, i, geo, proxy_geo,video_id,video_duration,source,video
                 driver.switch_to.window(window)
                 if driver.title != 'DevTools':
                     break
-            original_hwnd = win32gui.GetForegroundWindow()
-            if original_hwnd:
-                win32gui.SetForegroundWindow(original_hwnd)
             if driver is None:
                 false_count += 1
                 log("Không thể kết nối UC.", i)
@@ -333,22 +326,34 @@ def task_account(account, i, geo, proxy_geo,video_id,video_duration,source,video
                 return 0
             else:
                 log("Kết nối UC thành công.", i)
-                driver.minimize_window()
+                pid = find_pid_by_port(port)
+                hwnd = find_main2_hwnd_by_pid(pid)
+                if hwnd:
+                    try:
+                        maximize_window2(hwnd)
+                        log("Đã maximize_window 0.", i)
+                    except:
+                        try:
+                            pid = find_pid_by_port(port)
+                            hwnd = find_main2_hwnd_by_pid(pid)
+                            maximize_window2(hwnd)
+                            log("Đã maximize_window 1.", i)
+                        except:
+                            false_count += 1
+                            log("Không thể maximize_window.", i)
+                            stop_profile(uuid, queue, queue_open, queue_task, email, i)
+                            log("Đã stop_profile.", i)
+                            return False
                 driver.get("https://m.youtube.com")
                 sleep(random.uniform(5, 7))
                 log("Trang home thành công.", i)
 
-                # video_id_ran = find_random_videoid(driver)
-                # if video_id_ran:
-                #     success = view(driver, email, port, uuid, i, video_id_ran, random.uniform(
-                #         10, 15), "None", "", "fail")
-                # else:
-                #     success = pre_view(driver, email, port, uuid, i)
-                success = view(driver, email, port, uuid, i, video_id, video_duration,source,video_title,suggest_type)
-                while index < 4 and success:
+                success = view(driver, email, port, uuid, i, video_id,
+                                video_duration, source, video_title, suggest_type)
+                while index < 2 and success:
                     task = get_task_by_account(vps_name, email)
                     if task == NULL:
-                        log("API Error...",i)
+                        log("API Error...", i)
                         sleep(15)
                         index += 1
                         continue
@@ -413,34 +418,18 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         try:
             log("Thực hiện view "+source, i)
             # source view
-            if source == "suggest" and suggest_type == "fail" and 1==2:
-                
-                current_url = driver.current_url
-                if "watch" in current_url:
-                    pass
-                else:
-                    video_id_ran = find_random_videoid(driver)
-                    if video_id_ran:
-                        success = view(driver, email, port, uuid, i, video_id_ran, random.uniform(
-                            10, 15), "None", keyword, suggest_type)
-                        if not success:
-                            stop_profile(uuid, queue, queue_open,
-                                         queue_task, email, i)
-                            log("Đã stop_profile.", i)
-                            return False
-
-                    else:
-                        pass
-            elif source == "suggest" and suggest_type == "true"  and 1==2:
+            if source == "suggest":
                 search_url = "https://m.youtube.com/results?search_query=" + \
                     "+".join(keyword.split())
                 driver.get(search_url)
                 log("Tìm kiếm video để đề xuất", i)
                 sleep(random.uniform(5, 7))
-                while True:
+                for _ in range(5):
                     video_id_ran = find_random_videoid(driver)
-                    if video_id_ran!=video_id:
-                        break
+                    if video_id_ran:
+                        if video_id_ran != video_id:
+                            break
+
                 if video_id_ran:
                     success = view(driver, email, port, uuid, i, video_id_ran, random.uniform(
                         10, 25), "None", keyword, suggest_type)
@@ -513,8 +502,9 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
                                          queue_task, email, i)
                             log("Đã stop_profile.", i)
                             return False
-        except:
+        except Exception as e:
             false_count += 1
+            log(e, i)
             log("Không thể mở trang.", i)
             sleep(5)
             stop_profile(uuid, queue, queue_open, queue_task, email, i)
@@ -528,13 +518,13 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         hwnd = find_main2_hwnd_by_pid(pid)
         if hwnd:
             try:
-                maximize_window(hwnd)
+                maximize_window2(hwnd)
                 log("Đã maximize_window 0.", i)
             except:
                 try:
                     pid = find_pid_by_port(port)
                     hwnd = find_main2_hwnd_by_pid(pid)
-                    maximize_window(hwnd)
+                    maximize_window2(hwnd)
                     log("Đã maximize_window 1.", i)
                 except:
                     false_count += 1
@@ -558,8 +548,8 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
                 """
         result = driver.execute_script(js)
         if result:
-            if (not result['muted']):
-                log("Video không phát và có âm thanh.", i)
+            if (not result['paused']) and (not result['muted']):
+                log("Video có phát kèm âm thanh.", i)
             else:
                 log("Video có phát và không âm thanh. Run GUI 1", i)
                 gui_count += 1
@@ -587,7 +577,7 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
                 result = driver.execute_script(js)
                 if result:
                     if (not result['paused']) and (not result['muted']):
-                        log("Video không phát và có âm thanh.", i)
+                        log("Video có phát kèm âm thanh.", i)
                     else:
                         log("Video có phát và không âm thanh. Run GUI 2", i)
                         original_hwnd = win32gui.GetForegroundWindow()
@@ -613,7 +603,7 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
                         result = driver.execute_script(js)
                         if result:
                             if (not result['paused']) and (not result['muted']):
-                                log("Video không phát và có âm thanh.", i)
+                                log("Video có phát kèm âm thanh.", i)
                             else:
                                 false_count += 1
                                 log("Video có phát và không âm thanh. OFF", i)
@@ -637,11 +627,200 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         if source != "None":
             view_count += 1
             log("Hoàn thành View!", i)
-            if 1==1: #random.choice([True, False])
+            if 1 == 1:  # random.choice([True, False])
                 driver.get("https://m.youtube.com")
                 sleep(random.uniform(5, 7))
                 log("Trang home thành công.", i)
             update_account_task(email, video_id, True)
+        return True
+    except:
+        stop_profile(uuid, queue, queue_open, queue_task, email, i)
+        log("Đã stop_profile.", i)
+        return False
+
+
+def view2(driver, email, port, uuid, i, video_id, video_duration, source, keyword, suggest_type):
+    try:
+        try:
+            safe_remove(queue, i)
+            global view_count, false_count, check_running, gui_count
+            log("Thực hiện view "+source, i)
+            # source view
+            if source == "suggest":
+                search_url = "https://m.youtube.com/results?search_query=" + \
+                    "+".join(keyword.split())
+                driver.get(search_url)
+                log("Tìm kiếm video để đề xuất", i)
+                sleep(random.uniform(5, 7))
+                for _ in range(5):
+                    video_id_ran = find_random_videoid(driver)
+                    if video_id_ran:
+                        if video_id_ran != video_id:
+                            break
+
+                if video_id_ran:
+                    safe_remove(queue, i)
+                    success = view2(driver, email, port, uuid, i, video_id_ran, random.uniform(
+                        10, 25), "None", keyword, suggest_type)
+                    if not success:
+                        stop_profile(uuid, queue, queue_open,
+                                     queue_task, email, i)
+                        log("Đã stop_profile.", i)
+                        return False
+                else:
+                    pass
+            elif source == "dtn":
+                current_url = driver.current_url
+                if "watch" not in current_url:
+                    sleep(random.uniform(2, 3))
+                else:
+                    driver.get("https://m.youtube.com/")
+                    log("Về trang home", i)
+                    sleep(random.uniform(5, 7))
+            elif source == "search":
+                search_url = "https://m.youtube.com/results?search_query=" + \
+                    "+".join(keyword.split())
+                driver.get(search_url)
+                log("Tìm kiếm video theo keyword", i)
+                sleep(random.uniform(5, 7))
+            referrer = referrer_url(driver, video_id)
+            if not referrer:
+                new_url = "https://m.youtube.com/watch?v="+video_id
+                driver.execute_script(
+                    "window.location.href = arguments[0];", new_url)
+            else:
+                log("referrer url", i)
+        except Exception as e:
+            false_count += 1
+            log(e, i)
+            log("Không thể mở trang.", i)
+            sleep(5)
+            stop_profile(uuid, queue, queue_open, queue_task, email, i)
+            log("Đã stop_profile.", i)
+            return False
+        sleep(random.uniform(4, 6))
+        log("List GUI: " + str(queue), i)
+        queue.append(i)
+        while queue[0] != i:
+            sleep(1)
+        pid = find_pid_by_port(port)
+        hwnd = find_main2_hwnd_by_pid(pid)
+        if hwnd:
+            if maximize_window2(hwnd):
+                log("Đã maximize_window 0.", i)
+            else:
+                pid = find_pid_by_port(port)
+                hwnd = find_main2_hwnd_by_pid(pid)
+                if hwnd:
+                    if maximize_window2(hwnd):
+                        log("Đã maximize_window 1.", i)
+                    else:
+                        false_count += 1
+                        log("Không thể maximize_window.", i)
+                        stop_profile(uuid, queue, queue_open,
+                                     queue_task, email, i)
+                        log("Đã stop_profile.", i)
+                        return False
+        sleep(random.uniform(2, 3))
+        js = """
+                const video = document.querySelector('video');
+                if (video) {
+                    return {
+                        paused: video.paused,
+                        muted: video.muted,
+                        volume: video.volume,
+                        currentTime: video.currentTime
+                    };
+                }
+                return null;
+                """
+        result = driver.execute_script(js)
+        if result:
+            if (not result['paused']) and (not result['muted']):
+                log("Video có phát kèm âm thanh.", i)
+            else:
+                log("Video có phát và không âm thanh. Run GUI 1", i)
+                gui_count += 1
+                width, height = pyautogui.size()
+                original_hwnd = win32gui.GetForegroundWindow()
+                pid = find_pid_by_port(port)
+                hwnd = find_main2_hwnd_by_pid(pid)
+                for _ in range(5):
+                    if original_hwnd != hwnd:
+                        win32gui.SetForegroundWindow(hwnd)
+                        sleep(1)
+                    else:
+                        break
+                pyautogui.moveTo(width/2+random.randint(1, 50), 250 +
+                                 random.randint(1, 100), duration=random.uniform(0.2, 0.4))
+                sleep(random.uniform(0.2, 0.4))
+                pyautogui.leftClick()
+                if bool(random.randint(0, 1)):
+                    pyautogui.moveTo(width/2+random.randint(1, 300), 250 +
+                                     random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                else:
+                    pyautogui.moveTo(width/2-random.randint(1, 300), 250 +
+                                     random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                sleep(random.uniform(2, 4))
+                result = driver.execute_script(js)
+                if result:
+                    if (not result['paused']) and (not result['muted']):
+                        log("Video có phát kèm âm thanh.", i)
+                    else:
+                        log("Video có phát và không âm thanh. Run GUI 2", i)
+                        original_hwnd = win32gui.GetForegroundWindow()
+                        pid = find_pid_by_port(port)
+                        hwnd = find_main2_hwnd_by_pid(pid)
+                        for _ in range(5):
+                            if original_hwnd != hwnd:
+                                win32gui.SetForegroundWindow(hwnd)
+                                sleep(1)
+                            else:
+                                break
+                        pyautogui.moveTo(width/2+random.randint(1, 50), 250 +
+                                         random.randint(1, 100), duration=random.uniform(0.2, 0.4))
+                        sleep(random.uniform(0.3, 1))
+                        pyautogui.leftClick()
+                        if bool(random.randint(0, 1)):
+                            pyautogui.moveTo(width/2+random.randint(1, 300), 250 +
+                                             random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                        else:
+                            pyautogui.moveTo(width/2-random.randint(1, 300), 250 +
+                                             random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                        sleep(random.uniform(2, 4))
+                        result = driver.execute_script(js)
+                        if result:
+                            if (not result['paused']) and (not result['muted']):
+                                log("Video có phát kèm âm thanh.", i)
+                            else:
+                                false_count += 1
+                                log("Video có phát và không âm thanh. OFF", i)
+                                stop_profile(uuid, queue, queue_open,
+                                             queue_task, email, i)
+                                log("Đã stop_profile.", i)
+                                return False
+        else:
+            false_count += 1
+            log("Không tìm thấy thẻ <video>.", i)
+            stop_profile(uuid, queue, queue_open, queue_task, email, i)
+            log("Đã stop_profile.", i)
+            return False
+            # driver.get(new_url)
+        safe_remove(queue, i)
+        log("List GUI: " + str(queue), i)
+        safe_remove(queue_open, i)
+        log("List OPEN: " + str(queue_open), i)
+
+        sleep(video_duration)
+        if source != "None":
+            view_count += 1
+            log("Hoàn thành View!", i)
+            if 1 == 1:  # random.choice([True, False])
+                driver.get("https://m.youtube.com")
+                sleep(random.uniform(1, 2))
+                log("Trang home thành công.", i)
+            update_account_task(email, video_id, True)
+        sleep(random.uniform(3, 5))
         return True
     except:
         stop_profile(uuid, queue, queue_open, queue_task, email, i)
@@ -749,7 +928,6 @@ def main():
                         break
                     except:
                         continue
-
             while True:
                 if active_preset("40f21312-257f-4885-ab31-141765220dc2"):
                     check_running = True

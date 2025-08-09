@@ -1,5 +1,5 @@
 (function ICN9() {
-  const targetURL = 'https://data.ssvd.online/3h.mp4';
+  const targetURL = 'https://file.thanglam.info/filebrowser/api/public/dl/dzbISaQt';
   let hasPatched = false;
   let lastHref = location.href;
   let isFirstRun = true; // ✅ đánh dấu lần đầu

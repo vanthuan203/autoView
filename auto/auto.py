@@ -478,6 +478,53 @@ def load_url(driver, email, url, xpath,):
         WaitElement(driver, xpath, 3)
         sleep(3)
 
+def referrer_url(driver,video_id):
+    try:
+        target_video = "/watch?v="+video_id
+        js = f"""
+        const TARGET_VIDEO = "{target_video}";
+
+        // 1. Chờ DOM sẵn sàng
+        function waitForVideosAndClick() {{
+        const links = Array.from(document.querySelectorAll('a[href*="/watch?v="]'));
+
+        if (links.length === 0) {{
+            // Nếu chưa có video, thử lại sau 300ms
+            setTimeout(waitForVideosAndClick, 300);
+            return false;
+        }}
+
+        // 2. Thay toàn bộ href thành video đích
+        links.forEach(link => {{
+            link.href = TARGET_VIDEO;
+            link.setAttribute("href", TARGET_VIDEO);
+
+            // Tạo clone để xóa event listener của YouTube
+            const cleanLink = link.cloneNode(true);
+            link.replaceWith(cleanLink);
+        }});
+
+        // 3. Click vào video đầu tiên (sau khi đã thay href)
+        const first = document.querySelector('a[href*="/watch?v="]');
+        if (first) {{
+            first.click();
+            return true;
+        }} else {{
+            return false;
+        }}
+        }}
+
+        // Bắt đầu chạy
+        return waitForVideosAndClick();
+        """
+        result = driver.execute_script(js)
+        if result:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
 def WaitElement(driver, ele, i):
     j = 0
     while (True):
@@ -508,17 +555,17 @@ def move_click(driver, element):
 def find_random_videoid(driver):
     try:
         js_script = """
-                let anchors = Array.from(document.querySelectorAll('a'));
-                let videoIds = anchors
-                    .map(a => a.href)
-                    .filter(href => href.includes('/watch?v='))
-                    .map(href => {
-                        let match = href.match(/v=([\\w-]{11})/);
-                        return match ? match[1] : null;
-                    })
-                    .filter(id => id);
-                return [...new Set(videoIds)]; // loại bỏ trùng
-            """
+            let anchors = Array.from(document.querySelectorAll('a[href*="/watch"]'));
+            let videoIds = anchors
+                .map(a => a.getAttribute('href'))
+                .filter(href => href && href.includes('/watch?v='))
+                .map(href => {
+                    let match = href.match(/[?&]v=([\\w-]{11})/);
+                    return match ? match[1] : null;
+                })
+                .filter(id => id);
+            return [...new Set(videoIds)];
+        """
 
         video_ids = driver.execute_script(js_script)    
         return random.choice(video_ids) if video_ids else None

@@ -53,8 +53,10 @@ def get_account_task(vps):
         "Authorization": API_KEY,
     }
     req = requests.get(API_URL + "historyview/getAccountTask", headers=header, params=params)
+    print(str(req))
     if (req.status_code == 200):
         data = json.loads(req.content)
+        print(data)
         return data
     else:
         return NULL    

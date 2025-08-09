@@ -110,6 +110,27 @@ def find_main2_hwnd_by_pid(pid):
     win32gui.EnumWindows(callback, hwnds)
     return hwnds[0] if hwnds else None
 
+def find_main3_hwnd_by_pid(pid):
+    """Tìm HWND cửa sổ chính của process"""
+    def callback(hwnd, hwnds):
+        try:
+            _, found_pid = win32process.GetWindowThreadProcessId(hwnd)
+            if found_pid == pid and win32gui.IsWindowVisible(hwnd):
+                title = win32gui.GetWindowText(hwnd).strip()
+                rect = win32gui.GetWindowRect(hwnd)
+                w = rect[2] - rect[0]
+                h = rect[3] - rect[1]
+
+                # Lọc cửa sổ nhỏ hoặc popup
+                if title and w > 200 and h > 200:
+                    hwnds.append(hwnd)
+        except Exception:
+            pass
+        return True
+
+    hwnds = []
+    win32gui.EnumWindows(callback, hwnds)
+    return hwnds[0] if hwnds else None
 
 def get_window_position(i, col_limit=5, max_cols=4, offset_x=150, offset_y=30):
     col = (i // col_limit) % max_cols   # quay lại cột đầu khi quá max_cols
@@ -139,8 +160,36 @@ def maximize_window(hwnd):
     win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
     win32gui.SetForegroundWindow(hwnd)
 
+
+def maximize_window2(hwnd):
+    try:
+        fg_win = win32gui.GetForegroundWindow()
+        current_thread = win32api.GetCurrentThreadId()
+        fg_thread = win32process.GetWindowThreadProcessId(fg_win)[0]
+        target_thread = win32process.GetWindowThreadProcessId(hwnd)[0]
+
+        # Attach input
+        win32process.AttachThreadInput(current_thread, target_thread, True)
+        win32process.AttachThreadInput(fg_thread, target_thread, True)
+
+        win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+        win32gui.SetForegroundWindow(hwnd)
+
+        # Detach
+        win32process.AttachThreadInput(current_thread, target_thread, False)
+        win32process.AttachThreadInput(fg_thread, target_thread, False)
+
+        return True
+    except Exception as e:
+        return False
+
 def maximize_window_not_foreground(hwnd):
-    win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+    try:
+        win32gui.ShowWindow(hwnd, win32con.SW_MAXIMIZE)
+        return True
+    except:
+        return False
+
 
 
 def foreground_window(hwnd):
