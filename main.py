@@ -16,7 +16,7 @@ from selenium import webdriver
 from undetected_chromedriver import ChromeOptions
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-__version__ = "1.0.0"
+__version__ = "1.1.14"
 
 ctypes.windll.kernel32.SetConsoleTitleW("AUTO")
 init(autoreset=True)
@@ -29,8 +29,8 @@ false_count = 0
 gui_count = 0
 check_running = False
 
-with open("NameVps.txt", "r", encoding="utf-8") as f:
-    vps_name = f.readline().strip()
+with open(r"C:\autoView\NameVps.txt", "r", encoding="utf-8") as f:
+        vps_name = f.readline().strip()
 
 
 def update_console():
@@ -42,6 +42,9 @@ def update_console():
         except:
             pass
         now = datetime.now().strftime("%H:%M:%S")
+        start_time_1 = time.time()
+        start_time_2 = time.time()
+
         while True:
             try:
                 cpu_percent = psutil.cpu_percent(interval=1)
@@ -53,7 +56,7 @@ def update_console():
                 ctypes.windll.kernel32.SetConsoleTitleW(title)
 
                 # Mỗi 60 giây cập nhật lại vị trí và kích thước cửa sổ
-                if int(time.time()) % 60 == 0:
+                if time.time() - start_time_1 >= 60:
                     move_and_pin_console_bottom_right()
                     while True:
                         if active_preset("40f21312-257f-4885-ab31-141765220dc2"):
@@ -61,14 +64,20 @@ def update_console():
                             break
                         else:
                             if is_app_running("Linken Sphere"):
+                                check_running = False
                                 log("Linken Sphere hoạt động nhưng lỗi API đợi 30s...", -1)
                                 sleep(30)
                                 continue
                             else:
                                 if open_Linken():
+                                    check_running = False
                                     log("Bật app Linken Sphere", -1)
                                     sleep(60)
+                    start_time_1 = time.time()      
 
+                if time.time() - start_time_2 >= 300:
+                   subprocess.run([r'C:\autoView\GUI.bat'], shell=True)
+                   start_time_2 = time.time()
                 sleep(1)
             except:
                 pass
@@ -87,9 +96,13 @@ def chunk_accounts(accounts, num_chunks):
     return [accounts[i:i + chunk_size] for i in range(0, len(accounts), chunk_size)]
 
 
-def infinite_worker(thread_id):
+def infinite_worker(thread_id,start_time):
     while True:
         try:
+            
+            if time.time() - start_time >= 43200:
+                return True
+
             queue_task.append(thread_id)
             sleep(random.uniform(3, 5))
             while queue_task[0] != thread_id:
@@ -312,12 +325,15 @@ def task_account(account, i, geo, proxy_geo, video_id, video_duration, source, v
             while queue_open[0] != i:
                 sleep(random.uniform(2, 4))
             safe_remove(queue_open, i)
-            log("List OPEN: " + str(queue_open), i)
+            log("List OPEN: " + str(queue_open), i)                
             driver = webdriver.Chrome(options=options)
             for window in driver.window_handles:
                 driver.switch_to.window(window)
                 if driver.title != 'DevTools':
                     break
+            original_hwnd = win32gui.GetForegroundWindow()
+            if original_hwnd:
+                win32gui.SetForegroundWindow(original_hwnd)            
             if driver is None:
                 false_count += 1
                 log("Không thể kết nối UC.", i)
@@ -326,31 +342,28 @@ def task_account(account, i, geo, proxy_geo, video_id, video_duration, source, v
                 return 0
             else:
                 log("Kết nối UC thành công.", i)
-                pid = find_pid_by_port(port)
-                hwnd = find_main2_hwnd_by_pid(pid)
-                if hwnd:
-                    try:
-                        maximize_window2(hwnd)
-                        log("Đã maximize_window 0.", i)
-                    except:
-                        try:
-                            pid = find_pid_by_port(port)
-                            hwnd = find_main2_hwnd_by_pid(pid)
-                            maximize_window2(hwnd)
-                            log("Đã maximize_window 1.", i)
-                        except:
-                            false_count += 1
-                            log("Không thể maximize_window.", i)
-                            stop_profile(uuid, queue, queue_open, queue_task, email, i)
-                            log("Đã stop_profile.", i)
-                            return False
+                driver.minimize_window()
                 driver.get("https://m.youtube.com")
                 sleep(random.uniform(5, 7))
-                log("Trang home thành công.", i)
+                is_Login=is_logged_in_youtube
+                if is_logged_in_youtube:
+                    log("Tài khoản đã login!", i)
+                elif not is_logged_in_youtube:
+                    update_live_account(email,0)
+                    log("Tài khoản chưa login!", i)
+                    stop_profile(uuid, queue, queue_open, queue_task, email, i)
+                    log("Đã stop_profile.", i)
+                    return False
+                else:
+                    log("Không check đc login!", i)
+                    update_live_account(email,0)
+                    log("Tài khoản chưa login!", i)
+                    stop_profile(uuid, queue, queue_open, queue_task, email, i)
+                    log("Đã stop_profile.", i)                    
 
                 success = view(driver, email, port, uuid, i, video_id,
                                 video_duration, source, video_title, suggest_type)
-                while index < 2 and success:
+                while index < 4 and success:
                     task = get_task_by_account(vps_name, email)
                     if task == NULL:
                         log("API Error...", i)
@@ -361,8 +374,8 @@ def task_account(account, i, geo, proxy_geo, video_id, video_duration, source, v
                         account = select_account(
                             f"email='{task['username']}' and live=1")
                         if len(account) > 0:
-                            success = view(
-                                driver, email, port, uuid, i, task["video_id"], task["video_duration"], task["source"], task["video_title"], task["suggest_type"])
+                            success = view_sub(
+                                driver, email, port, uuid, i, task["video_id"], task["video_duration"], task["source"], task["video_title"], task["suggest_type"],task["sub"])
                             index += 1
                             continue
                         else:
@@ -412,6 +425,293 @@ def task_account(account, i, geo, proxy_geo, video_id, video_duration, source, v
         pass
     return 0
 
+
+def view_sub(driver, email, port, uuid, i, video_id, video_duration, source, keyword, suggest_type,sub):
+    try:
+        gui=False
+        try:
+            log("Thực hiện view "+source, i)
+            # source view
+            if source == "suggest":
+                search_url = "https://m.youtube.com/results?search_query=" + \
+                    "+".join(keyword.split())
+                driver.get(search_url)
+                log("Tìm kiếm video để đề xuất", i)
+                sleep(random.uniform(5, 7))
+                for _ in range(5):
+                    video_id_ran = find_random_videoid(driver)
+                    if video_id_ran:
+                        if video_id_ran != video_id:
+                            break
+
+                if video_id_ran:
+                    success = view(driver, email, port, uuid, i, video_id_ran, random.uniform(
+                        10, 25), "None", keyword, suggest_type)
+                    if not success:
+                        stop_profile(uuid, queue, queue_open,
+                                     queue_task, email, i)
+                        log("Đã stop_profile.", i)
+                        return False
+                else:
+                    pass
+            elif source == "dtn":
+                current_url = driver.current_url
+                if "watch" not in current_url:
+                    pass
+                else:
+                    driver.get("https://m.youtube.com/")
+                    log("Về trang home", i)
+                    sleep(random.uniform(5, 7))
+            elif source == "search":
+                search_url = "https://m.youtube.com/results?search_query=" + \
+                    "+".join(keyword.split())
+                driver.get(search_url)
+                log("Tìm kiếm video theo keyword", i)
+                sleep(random.uniform(5, 7))
+
+            global view_count, false_count, check_running, gui_count
+            new_url = "https://m.youtube.com/watch?v="+video_id
+            driver.execute_script(
+                "window.location.href = arguments[0];", new_url)
+            pid = find_pid_by_port(port)
+            hwnd = find_main2_hwnd_by_pid(pid)
+            if hwnd:
+                try:
+                    minimize_window(hwnd)
+                    if win32gui.IsIconic(hwnd):
+                        log("Đã minimize_window 0.", i)
+                        queue.append(i)
+                    else:
+                        pid = find_pid_by_port(port)
+                        hwnd = find_main2_hwnd_by_pid(pid)
+                        minimize_window(hwnd)
+                        if win32gui.IsIconic(hwnd):
+                            log("Đã minimize_window 1.", i)
+                            queue.append(i)
+                        else:
+                            false_count += 1
+                            log("Không thể minimize_window.", i)
+                            stop_profile(uuid, queue, queue_open,
+                                         queue_task, email, i)
+                            log("Đã stop_profile.", i)
+                            return False
+                except:
+                    pid = find_pid_by_port(port)
+                    hwnd = find_main2_hwnd_by_pid(pid)
+                    minimize_window(hwnd)
+                    if win32gui.IsIconic(hwnd):
+                        log("Đã minimize_window 0.", i)
+                        queue.append(i)
+                    else:
+                        pid = find_pid_by_port(port)
+                        hwnd = find_main2_hwnd_by_pid(pid)
+                        minimize_window(hwnd)
+                        if win32gui.IsIconic(hwnd):
+                            log("Đã minimize_window 1.", i)
+                            queue.append(i)
+                        else:
+                            false_count += 1
+                            log("Không thể minimize_window.", i)
+                            stop_profile(uuid, queue, queue_open,
+                                         queue_task, email, i)
+                            log("Đã stop_profile.", i)
+                            return False
+        except Exception as e:
+            false_count += 1
+            log(e, i)
+            log("Không thể mở trang.", i)
+            sleep(5)
+            stop_profile(uuid, queue, queue_open, queue_task, email, i)
+            log("Đã stop_profile.", i)
+            return False
+        sleep(random.uniform(4, 6))
+        while queue[0] != i:
+            sleep(1)
+        log("List GUI: " + str(queue), i)
+        pid = find_pid_by_port(port)
+        hwnd = find_main2_hwnd_by_pid(pid)
+        if hwnd:
+            try:
+                maximize_window2(hwnd)
+                log("Đã maximize_window 0.", i)
+            except:
+                try:
+                    pid = find_pid_by_port(port)
+                    hwnd = find_main2_hwnd_by_pid(pid)
+                    maximize_window2(hwnd)
+                    log("Đã maximize_window 1.", i)
+                except:
+                    false_count += 1
+                    log("Không thể maximize_window.", i)
+                    stop_profile(uuid, queue, queue_open, queue_task, email, i)
+                    log("Đã stop_profile.", i)
+                    return False
+        sleep(random.uniform(2, 3))
+
+        js = """
+                const video = document.querySelector('video');
+                if (video) {
+                    return {
+                        paused: video.paused,
+                        muted: video.muted,
+                        volume: video.volume,
+                        currentTime: video.currentTime
+                    };
+                }
+                return null;
+                """
+        result = driver.execute_script(js)
+        if result:
+            if (not result['paused']) and (not result['muted']):
+                log("Video có phát kèm âm thanh.", i)
+            else:
+                gui=True
+                log("Video có phát và không âm thanh. Run GUI 1", i)
+                gui_count += 1
+                width, height = pyautogui.size()
+                original_hwnd = win32gui.GetForegroundWindow()
+                pid = find_pid_by_port(port)
+                hwnd = find_main2_hwnd_by_pid(pid)
+                for _ in range(5):
+                    if original_hwnd != hwnd:
+                        win32gui.SetForegroundWindow(hwnd)
+                        sleep(1)
+                    else:
+                        break
+                pyautogui.moveTo(width/2+random.randint(1, 50), 250 +
+                                 random.randint(1, 100), duration=random.uniform(0.2, 0.4))
+                sleep(random.uniform(0.2, 0.4))
+                pyautogui.leftClick()
+                if bool(random.randint(0, 1)):
+                    pyautogui.moveTo(width/2+random.randint(1, 300), 250 +
+                                     random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                else:
+                    pyautogui.moveTo(width/2-random.randint(1, 300), 250 +
+                                     random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                sleep(random.uniform(2, 4))
+                result = driver.execute_script(js)
+                if result:
+                    if (not result['paused']) and (not result['muted']):
+                        log("Video có phát kèm âm thanh.", i)
+                    else:
+                        log("Video có phát và không âm thanh. Run GUI 2", i)
+                        original_hwnd = win32gui.GetForegroundWindow()
+                        pid = find_pid_by_port(port)
+                        hwnd = find_main2_hwnd_by_pid(pid)
+                        for _ in range(5):
+                            if original_hwnd != hwnd:
+                                win32gui.SetForegroundWindow(hwnd)
+                                sleep(1)
+                            else:
+                                break
+                        pyautogui.moveTo(width/2+random.randint(1, 50), 250 +
+                                         random.randint(1, 100), duration=random.uniform(0.2, 0.4))
+                        sleep(random.uniform(0.3, 1))
+                        pyautogui.leftClick()
+                        if bool(random.randint(0, 1)):
+                            pyautogui.moveTo(width/2+random.randint(1, 300), 250 +
+                                             random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                        else:
+                            pyautogui.moveTo(width/2-random.randint(1, 300), 250 +
+                                             random.randint(1, 300), duration=random.uniform(0.2, 0.4))
+                        sleep(random.uniform(2, 4))
+                        result = driver.execute_script(js)
+                        if result:
+                            if (not result['paused']) and (not result['muted']):
+                                log("Video có phát kèm âm thanh.", i)
+                            else:
+                                false_count += 1
+                                log("Video có phát và không âm thanh. OFF", i)
+                                stop_profile(uuid, queue, queue_open,
+                                             queue_task, email, i)
+                                log("Đã stop_profile.", i)
+                                return False
+        else:
+            false_count += 1
+            log("Không tìm thấy thẻ <video>.", i)
+            stop_profile(uuid, queue, queue_open, queue_task, email, i)
+            log("Đã stop_profile.", i)
+            return False
+            # driver.get(new_url)
+        if sub=="true" and not gui:   
+            pass
+        else: 
+            safe_remove(queue, i)
+        log("List GUI: " + str(queue), i)
+        safe_remove(queue_open, i)
+        log("List OPEN: " + str(queue_open), i)
+
+        for _ in range(3):
+            try:
+                start_time=get_video_current_seconds(driver)
+                if start_time:
+                    log(f"Video đang chạy ở giây {start_time}",i)
+                    break
+            except:
+                sleep(3)
+        current_index=0
+        current_check=-1
+
+        if sub=="true" and not gui:   
+            sleep(random.uniform(2, 4))
+            image_path = os.path.join(
+                r"C:\autoView\img",
+                "sub-en_pm.PNG"
+            )
+
+            location = pyautogui.locateOnScreen(image_path, confidence=0.8)
+
+            if location:
+                # Lấy tọa độ chính giữa của ảnh
+                center = pyautogui.center(location)
+                # Click vào giữa ảnh
+                pyautogui.click(center)
+                log("Đã click sub",i)    
+            else:
+                image_path = os.path.join(
+                                r"C:\autoView\img",
+                                "sub-vn_pm.PNG"
+                            )                
+                location = pyautogui.locateOnScreen(image_path, confidence=0.8)
+
+                if location:
+                    # Lấy tọa độ chính giữa của ảnh
+                    center = pyautogui.center(location)
+                    # Click vào giữa ảnh
+                    pyautogui.click(center)
+                    log("Đã click sub",i)                    
+            safe_remove(queue, i)
+
+        while True:
+            try:
+                sleep(10)
+                current_time=get_video_current_seconds(driver)
+                if current_time==current_check:
+                    update_account_task(email, video_id, False)
+                    return False
+                current_check=current_time
+                if current_time-start_time>=video_duration:
+                    break
+            except:
+                current_index+=1
+                if current_time>=3:
+                    update_account_task(email, video_id, False)
+                    return False
+                
+        if source != "None":
+            view_count += 1
+            log("Hoàn thành View!", i)
+            if 1 == 1:  # random.choice([True, False])
+                driver.get("https://m.youtube.com")
+                sleep(random.uniform(5, 7))
+                log("Trang home thành công.", i)
+            update_account_task(email, video_id, True)
+        return True
+    except:
+        stop_profile(uuid, queue, queue_open, queue_task, email, i)
+        log("Đã stop_profile.", i)
+        return False
+    
 
 def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword, suggest_type):
     try:
@@ -623,7 +923,32 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
         safe_remove(queue_open, i)
         log("List OPEN: " + str(queue_open), i)
 
-        sleep(video_duration)
+        for _ in range(3):
+            try:
+                start_time=get_video_current_seconds(driver)
+                if start_time:
+                    log(f"Video đang chạy ở giây {start_time}",i)
+                    break
+            except:
+                sleep(3)
+        current_index=0
+        current_check=-1
+        while True:
+            try:
+                sleep(10)
+                current_time=get_video_current_seconds(driver)
+                if current_time==current_check:
+                    update_account_task(email, video_id, False)
+                    return False
+                current_check=current_time
+                if current_time-start_time>=video_duration:
+                    break
+            except:
+                current_index+=1
+                if current_time>=3:
+                    update_account_task(email, video_id, False)
+                    return False
+                
         if source != "None":
             view_count += 1
             log("Hoàn thành View!", i)
@@ -636,7 +961,7 @@ def view(driver, email, port, uuid, i, video_id, video_duration, source, keyword
     except:
         stop_profile(uuid, queue, queue_open, queue_task, email, i)
         log("Đã stop_profile.", i)
-        return False
+        return False    
 
 
 def view2(driver, email, port, uuid, i, video_id, video_duration, source, keyword, suggest_type):
@@ -811,7 +1136,31 @@ def view2(driver, email, port, uuid, i, video_id, video_duration, source, keywor
         safe_remove(queue_open, i)
         log("List OPEN: " + str(queue_open), i)
 
-        sleep(video_duration)
+        for _ in range(3):
+            try:
+                start_time=get_video_current_seconds(driver)
+                if start_time:
+                    log(f"Video đang chạy ở giây {start_time}",i)
+                    break
+            except:
+                sleep(3)
+        current_index=0
+        while True:
+            try:
+                sleep(10)
+                current_time=get_video_current_seconds(driver)
+                if current_time-start_time>=video_duration:
+                    break
+            except:
+                current_index+=1
+                if current_time>=3:
+                    update_account_task(email, video_id, False)
+                    return False
+
+
+        
+
+        #sleep(video_duration)
         if source != "None":
             view_count += 1
             log("Hoàn thành View!", i)
@@ -945,6 +1294,9 @@ def main():
 
             while True:
                 try:
+                    
+                    start_time = time.time()
+
                     threads = 0
                     option = ""
                     mode = "auto"
@@ -962,11 +1314,18 @@ def main():
                                     log("VPS Pending...", -1)
                                     sleep(5)
                                 else:
+                                    while not check_running:
+                                        sleep(10)
                                     threads = data["threads"]
                                     option = data["option"]
-                                    if data["vpsreset"] == 3:
-                                        delete_account(None)
+                                    if data["vpsreset"] == 3 or data["vpsreset"] == 10:
                                         log("Xóa all account...", -1)
+                                        accounts = select_all_account()
+                                        for account in accounts:
+                                            if(len(account[3])>0):
+                                                delete_profile(account[3])
+                                            delete_account(account[0])
+                                        log("Xóa all account thành công", -1)
                                     break
                             except:
                                 sleep(5)
@@ -979,9 +1338,13 @@ def main():
                                 sleep(5)
                                 continue
                             if (account["status"] == "true"):
-                                insert_account(
-                                    account["username"], account["password"], account["recover"])
-                                log("Insert account: "+account["username"], -1)
+                                if check_account(account["username"])==0:
+                                    insert_account(
+                                        account["username"], account["password"], account["recover"])
+                                    log("Insert account: "+account["username"], -1)
+                                else:
+                                    log("Đã tồn tại: "+account["username"], -1)
+
                             else:
                                 if "Đã đủ acc" in account["message"]:
                                     log("Đã đủ acount cho VPS!", -1)
@@ -1006,18 +1369,13 @@ def main():
                         loop_threads = []
                         for i in range(threads):
                             t = threading.Thread(target=infinite_worker,
-                                                 args=(i,), daemon=True)
+                                                 args=(i,start_time,), daemon=True)
                             t.start()
                             sleep(random.uniform(30, 60))
                             loop_threads.append(t)
 
-                        # Giữ main thread sống
-                        try:
-                            while True:
-                                sleep(60)
-                        except KeyboardInterrupt:
-                            log("Dừng chương trình bởi người dùng.", -1)
-
+                        for t in loop_threads:
+                            t.join()
                     except Exception as e:
                         log("Lỗi hàm main!", -1)
                 except:

@@ -1,6 +1,6 @@
 import sqlite3
 
-def create_connection(db_path="DataLinken.db"):
+def create_connection(db_path=r"C:\autoView\DataLinken.db"):
     return sqlite3.connect(db_path)
 
 def create_table():
@@ -22,6 +22,19 @@ def select_account(where_clause="1=1"):
     with create_connection() as conn:
         c = conn.cursor()
         c.execute(f"SELECT email,password,recover,uuid FROM Account WHERE {where_clause}")
+        rows = c.fetchall()
+        return rows
+    
+def check_account(email):
+    with create_connection() as conn:
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM Account WHERE email=?", (email,))
+        return c.fetchone()[0]
+    
+def select_all_account():
+    with create_connection() as conn:
+        c = conn.cursor()
+        c.execute(f"SELECT email,password,recover,uuid FROM Account")
         rows = c.fetchall()
         return rows
 

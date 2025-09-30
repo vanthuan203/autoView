@@ -34,7 +34,7 @@ def resize_console(width=200, height=200):
     # Đặt lại kích thước CMD
     os.system(f'mode con: cols={width} lines={height}')
 
-def move_and_pin_console_bottom_right(width_frac=3/7, height_frac=1/4):
+def move_and_pin_console_bottom_right(width_frac=3/8, height_frac=1/4):
     while True:
         try:
             hwnd = ctypes.windll.kernel32.GetConsoleWindow()

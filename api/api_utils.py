@@ -15,6 +15,19 @@ def check_vps(vps):
     else:
         return NULL
     
+
+def check_reset_vps(vps):
+    params = {
+        "vps": vps
+    }
+    req = requests.get(API_URL + "vps/checkresetvps", params=params)
+    if (req.status_code == 200):
+        data = json.loads(req.content)
+        return data
+    else:
+        return NULL
+
+    
 def get_account(vps,geo):
     params = {
         "vps": vps,

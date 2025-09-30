@@ -70,8 +70,8 @@ def set_proxy(uuid, proxy):
 
 def start_profile(uuid):
     try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ext_path = os.path.join(current_dir, 'ext')
+        #current_dir = os.path.dirname(os.path.abspath(__file__))
+        #ext_path = os.path.join(current_dir, 'ext')
         domain_google=r"*data.ssvd.online*"
         domain_ip=r"*ipfighter.com*"
         #--proxy-bypass-list=*googlevideo.com*;*ipfighter.com*
@@ -79,8 +79,10 @@ def start_profile(uuid):
         #--load-extension=C:\autoView\ext
         #f"--load-extension={ext_path} --proxy-bypass-list=*data.ssvd.online*"
         x = {
-            "uuid": uuid,
-            "chromium_args": r" --disable-gpu --disable-extensions"
+            "uuid": uuid
+            #"chromium_args": r"--disable-extensions"
+            # "chromium_args": r"--disable-gpu --disable-background-timer-throttling "
+            #      r"--disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
         }
         header = {
             "accept": "application/json",
@@ -136,6 +138,22 @@ def warmup_profile(uuid):
         }
         url = "http://127.0.0.1:40080/sessions/start_warmup"
         req = requests.post(url, data=json.dumps(x), headers=header)
+        if (req.status_code == 200):
+            return True
+        else:
+            return False
+    except:
+        return False
+    
+
+def close_app():
+    try:
+        header = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        url = "http://127.0.0.1:40080/auth/close"
+        req = requests.post(url, headers=header)
         if (req.status_code == 200):
             return True
         else:

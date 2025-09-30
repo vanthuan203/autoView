@@ -572,3 +572,38 @@ def find_random_videoid(driver):
     except:
         return None
 
+
+def is_logged_in_youtube(driver, timeout=10):
+    try:
+        # Chờ trang có body (nếu không -> timeout -> lỗi mạng)
+        WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+        
+        # Check avatar YouTube
+        script = """
+            return !!document.querySelector('img[src*="yt3.ggpht.com"]');
+        """
+        logged_in = driver.execute_script(script)
+        return True if logged_in else False
+
+    except Exception:
+        return "error"
+    
+def get_video_current_seconds(driver):
+    """
+    Lấy thời gian hiện tại của video (tính bằng giây).
+    - Trả về số giây (int) nếu video tồn tại.
+    - Trả về None nếu không có video hoặc chưa load.
+    - Trả về 'network_error' nếu không thể lấy thông tin (mất mạng).
+    """
+    try:
+        script = """
+        const v = document.querySelector('video');
+        if (!v) return null;
+        if (isNaN(v.currentTime)) return null;
+        return Math.floor(v.currentTime);
+        """
+        return driver.execute_script(script)
+    except Exception:
+        return None
