@@ -43,6 +43,25 @@ def name_profile(uuid, name):
     except:
         return False
 
+def import_cookies(uuid, path):
+    try:
+        x = {
+            "uuid": uuid,
+            "file_path": path
+        }
+        header = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        url = "http://127.0.0.1:40080/sessions/import_cookies"
+        req = requests.post(url, data=json.dumps(x), headers=header)
+        if (req.status_code == 200):
+            return True
+        else:
+            return False
+    except:
+        return False
+
 
 def set_proxy(uuid, proxy):
     try:
@@ -79,8 +98,70 @@ def start_profile(uuid):
         #--load-extension=C:\autoView\ext
         #f"--load-extension={ext_path} --proxy-bypass-list=*data.ssvd.online*"
         x = {
-            "uuid": uuid
-            #"chromium_args": r"--disable-extensions"
+            "uuid": uuid,
+            "chromium_args": r"--autoplay-policy=document-user-activation-required"
+            # "chromium_args": r"--disable-gpu --disable-background-timer-throttling "
+            #      r"--disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
+        }
+        header = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        url = "http://127.0.0.1:40080/sessions/start"
+        req = requests.post(url, data=json.dumps(x), headers=header)
+        if (req.status_code == 200):
+            data = json.loads(req.content)
+            return data.get("debug_port")
+        else:
+            return NULL
+    except:
+        return NULL
+
+
+def export_cookies(uuid_list):
+    try:
+        x = {
+            "uuids": uuid_list,
+            "folder_path": "C:/autoView/cookies/"
+        }
+        print("Payload gửi đi:", x)
+
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+
+        url = "http://127.0.0.1:40080/sessions/export_cookies"
+        req = requests.post(url, json=x, headers=headers)
+        print("Trạng thái:", req)
+
+        if req.status_code == 200:
+            data = req.json()
+            print("Phản hồi:", data)
+            return data[0].get("cookie_path")
+        else:
+            print("Lỗi server:", req.status_code, req.text)
+            return None
+    except Exception as e:
+        print("Lỗi ngoại lệ:", e)
+        return None
+
+def start_profile_link(uuid,link):
+    try:
+        #current_dir = os.path.dirname(os.path.abspath(__file__))
+        #ext_path = os.path.join(current_dir, 'ext')
+        domain_google=r"*data.ssvd.online*"
+        domain_ip=r"*ipfighter.com*"
+        #--proxy-bypass-list=*googlevideo.com*;*ipfighter.com*
+        #--disable-extensions
+        #--load-extension=C:\autoView\ext
+        #f"--load-extension={ext_path} --proxy-bypass-list=*data.ssvd.online*"
+        x = {
+            "uuid": uuid,
+            "chromium_args": (
+                    r"--app=" + link + " "
+                                       r"--autoplay-policy=document-user-activation-required "
+            )
             # "chromium_args": r"--disable-gpu --disable-background-timer-throttling "
             #      r"--disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
         }

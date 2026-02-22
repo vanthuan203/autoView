@@ -5,6 +5,7 @@ import sys
 # API endpoint check update
 API_URL = "http://your-server.com/check-update"  # đổi thành API của bạn
 
+
 # Hàm lấy version từ file exe
 def get_file_version(file_path):
     try:
@@ -17,12 +18,14 @@ def get_file_version(file_path):
         print(f"Lỗi lấy version: {e}")
         return None
 
+
 # Hàm tìm file exe trong thư mục tool
 def find_current_exe():
     for file in os.listdir(os.getcwd()):
         if file.lower().endswith(".exe"):
             return file
     return None
+
 
 # Hàm check update và tải về
 def check_and_update():
@@ -55,6 +58,7 @@ def check_and_update():
             print(f"Server trả về trạng thái {response.status_code}, không update.")
     except Exception as e:
         print(f"Lỗi khi check update: {e}")
+
 
 if __name__ == "__main__":
     check_and_update()

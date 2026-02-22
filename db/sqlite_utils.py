@@ -21,7 +21,7 @@ def insert_account(email,password,recover):
 def select_account(where_clause="1=1"):
     with create_connection() as conn:
         c = conn.cursor()
-        c.execute(f"SELECT email,password,recover,uuid FROM Account WHERE {where_clause}")
+        c.execute(f"SELECT email,password,recover,uuid,cookie FROM Account WHERE {where_clause}")
         rows = c.fetchall()
         return rows
     
@@ -34,7 +34,7 @@ def check_account(email):
 def select_all_account():
     with create_connection() as conn:
         c = conn.cursor()
-        c.execute(f"SELECT email,password,recover,uuid FROM Account")
+        c.execute(f"SELECT email,password,recover,uuid,cookie FROM Account")
         rows = c.fetchall()
         return rows
 
@@ -64,6 +64,14 @@ def update_uuid_account(username, uuid):
         cursor.execute('''
             UPDATE Account SET uuid = ? WHERE email = ?
         ''', (uuid, username))
+        conn.commit()
+
+def update_cookies_account(username, cookies):
+    with create_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE Account SET cookie = ? WHERE email = ?
+        ''', (cookies, username))
         conn.commit()
         
     
